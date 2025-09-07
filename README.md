@@ -4,7 +4,7 @@ A web application that uses AI to generate realistic baby photos from parent ima
 
 ## Demo Video
 
-🎥 **Watch the application in action**: [https://youtu.be/gfz2u4Sojfo](https://youtu.be/gfz2u4Sojfo)
+[![Watch the video](https://github.com/user-attachments/assets/aed9c730-5dab-402c-ae30-070778588ba0)](https://youtu.be/gfz2u4Sojfo)
 
 ## Features
 
