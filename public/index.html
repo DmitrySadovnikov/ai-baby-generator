@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Baby Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .drag-active {
+            @apply border-blue-500 bg-blue-50 dark:bg-blue-900/20;
+        }
+        .drag-drop-area {
+            transition: all 0.3s ease;
+        }
+        .drag-drop-area:hover {
+            @apply border-gray-400 dark:border-gray-500;
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            50: '#1a1a1a',
+                            100: '#2d2d2d',
+                            200: '#404040',
+                            300: '#525252',
+                            400: '#666666',
+                            500: '#7a7a7a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
+                AI Baby Generator
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">Generate adorable baby photos using AI and parent images</p>
+        </div>
+
+        <!-- Main Generation Form -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Generate Your Baby</h2>
+
+            <form id="generationForm" class="space-y-6">
+                <!-- Image Upload Areas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Mother Image -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium">Mother's Photo (Optional)</label>
+                        <div class="drag-drop-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer transition-colors" data-upload="mother">
+                            <div class="upload-content">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Drop image or click to upload</p>
+                            </div>
+                            <input type="file" accept="image/*" class="hidden" data-input="mother">
+                        </div>
+                    </div>
+
+                    <!-- Father Image -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium">Father's Photo (Optional)</label>
+                        <div class="drag-drop-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer transition-colors" data-upload="father">
+                            <div class="upload-content">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Drop image or click to upload</p>
+                            </div>
+                            <input type="file" accept="image/*" class="hidden" data-input="father">
+                        </div>
+                    </div>
+
+                    <!-- Baby Image -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium">Existing Baby Photo (Optional)</label>
+                        <div class="drag-drop-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer transition-colors" data-upload="baby">
+                            <div class="upload-content">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Drop image or click to upload</p>
+                            </div>
+                            <input type="file" accept="image/*" class="hidden" data-input="baby">
+                        </div>
+                    </div>
+
+                    <!-- Ultrasound Image -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium">Ultrasound Photo (Optional)</label>
+                        <div class="drag-drop-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center cursor-pointer transition-colors" data-upload="ultrasound">
+                            <div class="upload-content">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Drop image or click to upload</p>
+                            </div>
+                            <input type="file" accept="image/*" class="hidden" data-input="ultrasound">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Baby Specifications -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Age Input -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium">Baby Age</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="age" value="6" min="1" max="100" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <select id="ageUnit" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="months">Months</option>
+                                <option value="years">Years</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium">Gender (Optional)</label>
+                        <select id="gender" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Any</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+
+                    <!-- Weight -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium">Weight (Optional)</label>
+                        <select id="weight" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Normal</option>
+                            <option value="light">Light</option>
+                            <option value="heavy">Heavy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="text-center">
+                    <button type="submit" id="generateBtn" class="bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="flex items-center justify-center space-x-2">
+                            <span id="generateText">Generate Baby Photo</span>
+                            <div id="generateSpinner" class="loading-spinner hidden h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Generated Result -->
+        <div id="resultSection" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8 hidden">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Generated Baby</h2>
+            <div class="text-center">
+                <img id="generatedImage" class="mx-auto rounded-lg shadow-md max-w-md w-full mb-4" alt="Generated baby">
+
+                <!-- Age Extrapolation -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-medium mb-3">Age Progression</h3>
+                    <div class="flex items-center justify-center space-x-4 mb-4">
+                        <input type="number" id="newAge" value="12" min="1" max="100" class="w-20 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <select id="newAgeUnit" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="months">Months</option>
+                            <option value="years">Years</option>
+                        </select>
+                        <button id="extrapolateBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span class="flex items-center space-x-2">
+                                <span id="extrapolateText">Age Progress</span>
+                                <div id="extrapolateSpinner" class="loading-spinner hidden h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            </span>
+                        </button>
+                    </div>
+                    <div id="progressedImageContainer" class="hidden">
+                        <img id="progressedImage" class="mx-auto rounded-lg shadow-md max-w-md w-full" alt="Age-progressed baby">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Generation History</h2>
+            <div id="historyGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- History items will be dynamically added here -->
+            </div>
+            <div id="emptyHistory" class="text-center text-gray-500 dark:text-gray-400 py-8 hidden">
+                <svg class="mx-auto h-16 w-16 mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+                <p>No generations yet. Create your first baby photo above!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode setup
+        document.documentElement.classList.add('dark');
+
+        // Global state
+        let uploadedImages = {
+            mother: null,
+            father: null,
+            baby: null,
+            ultrasound: null
+        };
+        let currentGenerationId = null;
+
+        // Utility functions
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function showLoading(buttonId, textId, spinnerId) {
+            const button = document.getElementById(buttonId);
+            const text = document.getElementById(textId);
+            const spinner = document.getElementById(spinnerId);
+
+            button.disabled = true;
+            text.textContent = 'Processing...';
+            spinner.classList.remove('hidden');
+        }
+
+        function hideLoading(buttonId, textId, spinnerId, originalText) {
+            const button = document.getElementById(buttonId);
+            const text = document.getElementById(textId);
+            const spinner = document.getElementById(spinnerId);
+
+            button.disabled = false;
+            text.textContent = originalText;
+            spinner.classList.add('hidden');
+        }
+
+        // Drag and drop functionality
+        function setupDragAndDrop() {
+            const uploadAreas = document.querySelectorAll('.drag-drop-area');
+
+            uploadAreas.forEach(area => {
+                const input = area.querySelector('input[type="file"]');
+                const type = area.dataset.upload;
+
+                // Click to upload
+                area.addEventListener('click', () => input.click());
+
+                // Drag and drop events
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    area.addEventListener(eventName, preventDefaults, false);
+                });
+
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    area.addEventListener(eventName, () => area.classList.add('drag-active'), false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    area.addEventListener(eventName, () => area.classList.remove('drag-active'), false);
+                });
+
+                area.addEventListener('drop', handleDrop, false);
+
+                function handleDrop(e) {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleFileUpload(files[0], type, area);
+                    }
+                }
+
+                // File input change
+                input.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleFileUpload(e.target.files[0], type, area);
+                    }
+                });
+            });
+        }
+
+        async function handleFileUpload(file, type, area) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file.');
+                return;
+            }
+
+            try {
+                const base64 = await fileToBase64(file);
+                uploadedImages[type] = base64;
+
+                // Update UI to show uploaded image
+                const uploadContent = area.querySelector('.upload-content');
+                uploadContent.innerHTML = `
+                    <img src="${base64}" alt="${type} image" class="w-full object-cover rounded-lg mb-2">
+                    <p class="text-sm text-green-600 dark:text-green-400">✓ ${file.name}</p>
+                `;
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('Error uploading file. Please try again.');
+            }
+        }
+
+        // Generation form submission
+        async function handleGeneration(e) {
+            e.preventDefault();
+
+            const age = parseInt(document.getElementById('age').value);
+            const ageUnit = document.getElementById('ageUnit').value;
+            const gender = document.getElementById('gender').value;
+            const weight = document.getElementById('weight').value;
+
+            if (!age || age < 1) {
+                alert('Please enter a valid age.');
+                return;
+            }
+
+            showLoading('generateBtn', 'generateText', 'generateSpinner');
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        motherImage: uploadedImages.mother,
+                        fatherImage: uploadedImages.father,
+                        babyImage: uploadedImages.baby,
+                        ultrasoundImage: uploadedImages.ultrasound,
+                        age,
+                        ageUnit,
+                        gender: gender || null,
+                        weight: weight || null
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // Show result
+                currentGenerationId = result.id;
+                document.getElementById('generatedImage').src = result.generatedImage;
+                document.getElementById('resultSection').classList.remove('hidden');
+                document.getElementById('resultSection').classList.add('fade-in');
+
+                // Refresh history
+                loadHistory();
+
+                // Scroll to result
+                document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Generation error:', error);
+                alert('Failed to generate baby image. Please try again.');
+            } finally {
+                hideLoading('generateBtn', 'generateText', 'generateSpinner', 'Generate Baby Photo');
+            }
+        }
+
+        // Age extrapolation
+        async function handleExtrapolation() {
+            if (!currentGenerationId) {
+                alert('Please generate a baby first.');
+                return;
+            }
+
+            const newAge = parseInt(document.getElementById('newAge').value);
+            const newAgeUnit = document.getElementById('newAgeUnit').value;
+
+            if (!newAge || newAge < 1) {
+                alert('Please enter a valid age for progression.');
+                return;
+            }
+
+            showLoading('extrapolateBtn', 'extrapolateText', 'extrapolateSpinner');
+
+            try {
+                const response = await fetch('/api/extrapolate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        generationId: currentGenerationId,
+                        newAge,
+                        newAgeUnit
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // Show progressed image
+                document.getElementById('progressedImage').src = result.progressedImage;
+                document.getElementById('progressedImageContainer').classList.remove('hidden');
+                document.getElementById('progressedImageContainer').classList.add('fade-in');
+
+                // Refresh history to show the new progression
+                loadHistory();
+
+            } catch (error) {
+                console.error('Extrapolation error:', error);
+                alert('Failed to progress age. Please try again.');
+            } finally {
+                hideLoading('extrapolateBtn', 'extrapolateText', 'extrapolateSpinner', 'Age Progress');
+            }
+        }
+
+        // Load and display history
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const history = await response.json();
+
+                const historyGrid = document.getElementById('historyGrid');
+                const emptyHistory = document.getElementById('emptyHistory');
+
+                if (history.length === 0) {
+                    historyGrid.innerHTML = '';
+                    emptyHistory.classList.remove('hidden');
+                    return;
+                }
+
+                emptyHistory.classList.add('hidden');
+
+                historyGrid.innerHTML = history.map(item => `
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 fade-in">
+                        <img src="${item.generatedImage}" alt="Generated baby" class="w-full h-48 object-cover rounded-lg mb-3">
+                        <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <p><strong>Age:</strong> ${item.age} ${item.ageUnit}</p>
+                            ${item.gender ? `<p><strong>Gender:</strong> ${item.gender}</p>` : ''}
+                            ${item.weight ? `<p><strong>Weight:</strong> ${item.weight}</p>` : ''}
+                            <p><strong>Created:</strong> ${new Date(item.createdAt).toLocaleDateString()}</p>
+                        </div>
+
+                        ${item.progressions && item.progressions.length > 0 ? `
+                            <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                                <h4 class="text-sm font-medium mb-2">Age Progressions:</h4>
+                                <div class="grid grid-cols-2 gap-2">
+                                    ${item.progressions.map(prog => `
+                                        <div class="text-center">
+                                            <img src="${prog.progressedImage}" alt="Age progression" class="w-full h-20 object-cover rounded mb-1">
+                                            <p class="text-xs text-gray-500">${prog.newAge} ${prog.newAgeUnit}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <button onclick="deleteGeneration('${item.id}')" class="w-full mt-3 bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-colors">
+                            Delete
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        // Delete generation
+        async function deleteGeneration(id) {
+            if (!confirm('Are you sure you want to delete this generation?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/history/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    loadHistory();
+                } else {
+                    throw new Error('Failed to delete generation');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('Failed to delete generation. Please try again.');
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDragAndDrop();
+            loadHistory();
+
+            document.getElementById('generationForm').addEventListener('submit', handleGeneration);
+            document.getElementById('extrapolateBtn').addEventListener('click', handleExtrapolation);
+        });
+    </script>
+</body>
+</html>

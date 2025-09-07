@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  baby-generator:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./database.sqlite:/app/database.sqlite
+    restart: unless-stopped
